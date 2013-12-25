@@ -30,4 +30,5 @@ class twitterapi:
             print '[place]'+s.place['full_name'].encode('utf-8')
             coordinates = s.place['bounding_box']['coordinates'][0]
             for i in range(len(coordinates)):
-                print "[boundingBox%d] %f, %f" % (i, coordinates[i][0], coordinates[i][1])
+                print "[boundingBox%d] %f, %f" \
+                        % (i, coordinates[i][0], coordinates[i][1])
