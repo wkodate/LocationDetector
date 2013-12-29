@@ -13,27 +13,38 @@
 <body>
     <div id='map'></div>
     <script>
-        var latlng = new google.maps.LatLng(35.66, 139.69);
+        var latlng = new google.maps.LatLng(35.6909, 139.7002);
         var options = {
             zoom: 15,
             center: latlng,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
+
         var map = new google.maps.Map(document.getElementById('map'), options);
+        var data = new Array();
+        data.push({user: 'user', position: new google.maps.LatLng(35.6909, 139.7002), content: 'text'});
+        data.push({user: 'user', position: new google.maps.LatLng(35.6919, 139.7002), content: 'text'});
+        data.push({user: 'user', position: new google.maps.LatLng(35.6929, 139.7002), content: 'text'});
+        data.push({user: 'user', position: new google.maps.LatLng(35.6939, 139.7002), content: 'text'});
 
-        var infoWindow = new google.maps.InfoWindow({
-            content: '<strong>text</strong>',
-            position: latlng
-        })
-        var marker = new google.maps.Marker({
-            position: latlng,
-            map: map 
-            //icon: TwitterIcon.png
-        });
+        function attachMessage(marker, msg) {
+            var infoWindow = new google.maps.InfoWindow({
+                content: msg,
+            })
+            google.maps.event.addListener(marker, 'click', function() {
+                infoWindow.open(map, marker);
+            });
+        }
 
-        google.maps.event.addListener(marker, 'click', function() {
-            infoWindow.open(map, marker);
-        });
+        for (i=0; i<data.length; i++) {
+            var marker = new google.maps.Marker({
+                position: data[i].position,
+                map: map 
+                //icon: TwitterIcon.png
+            });
+            var message = data[i].user+': '+data[i].content;
+            attachMessage(marker, message);
+        }
     </script>
 </body>
 </html>
