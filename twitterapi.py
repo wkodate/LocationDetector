@@ -23,12 +23,28 @@ class twitterapi:
 
     def getTweetsWithLoco(self, name='wkodate', cnt=20):
         statuses = self.api.GetUserTimeline(screen_name=name, count=cnt)
+        tweets = {}
+        tweets['texts'] = []
+        tweets['full_names'] = []
+        tweets['lng'] = []
+        tweets['lat'] = []
+        tweets['created_at'] = []
         for s in statuses:
             if (s.place is None):
                 continue
+            if (s.coordinates is None):
+                continue
+            tweets['texts'].append(s.text)
+            tweets['full_names'].append(s.place['full_name'])
+            lng = s.coordinates['coordinates'][0]
+            lat = s.coordinates['coordinates'][1]
+            tweets['lng'].append(lng)
+            tweets['lat'].append(lat)
+            tweets['created_at'].append(s.created_at)
+
             print '[text]'+s.text.encode('utf-8')
             print '[place]'+s.place['full_name'].encode('utf-8')
-            coordinates = s.place['bounding_box']['coordinates'][0]
-            for i in range(len(coordinates)):
-                print "[boundingBox%d] %f, %f" \
-                        % (i, coordinates[i][0], coordinates[i][1])
+            print "[geo] %f %f" % (lng, lat)
+            print "[created_at]"+s.created_at
+            print '-----------------------------------'
+        print tweets
