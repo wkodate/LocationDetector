@@ -26,8 +26,8 @@ class twitterapi:
         tweets = {}
         tweets['texts'] = []
         tweets['full_names'] = []
-        tweets['lng'] = []
         tweets['lat'] = []
+        tweets['lng'] = []
         tweets['created_at'] = []
         for s in statuses:
             if (s.place is None):
@@ -36,15 +36,15 @@ class twitterapi:
                 continue
             tweets['texts'].append(s.text)
             tweets['full_names'].append(s.place['full_name'])
-            lng = s.coordinates['coordinates'][0]
-            lat = s.coordinates['coordinates'][1]
-            tweets['lng'].append(lng)
+            lat = s.coordinates['coordinates'][0]
+            lng = s.coordinates['coordinates'][1]
             tweets['lat'].append(lat)
+            tweets['lng'].append(lng)
             tweets['created_at'].append(s.created_at)
 
             print '[text]'+s.text.encode('utf-8')
             print '[place]'+s.place['full_name'].encode('utf-8')
-            print "[geo] %f %f" % (lng, lat)
+            print "[geo] %f %f" % (lat, lng)
             print "[created_at]"+s.created_at
             print '-----------------------------------'
         #print tweets
