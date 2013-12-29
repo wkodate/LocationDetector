@@ -51,4 +51,5 @@ class twitterapi:
                 if (s.place is None):
                     continue
                 print s.text.encode('utf-8')
+                print s.place['full_name'].encode('utf-8')
                 print s                
