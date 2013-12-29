@@ -47,4 +47,4 @@ class twitterapi:
             print "[geo] %f %f" % (lng, lat)
             print "[created_at]"+s.created_at
             print '-----------------------------------'
-        print tweets
+        #print tweets
