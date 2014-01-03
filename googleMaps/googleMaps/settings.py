@@ -83,5 +83,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = ( 
-    '/User/wkodate/Develop/TwitterAnalysis/googleMaps/googleMaps',
+    '/Users/wkodate/Develop/TwitterAnalysis/googleMaps/googleMaps',
 )
