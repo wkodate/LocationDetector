@@ -21,7 +21,7 @@ class twitterapi:
         for s in statuses:
             print s.text.encode('utf-8')
 
-    def getTweetsWithLoco(self, name='wkodate', cnt=20):
+    def getTweetsWithLocoFromAccount(self, name='wkodate', cnt=20):
         statuses = self.api.GetUserTimeline(screen_name=name, count=cnt)
         tweets = {}
         tweets['texts'] = []
@@ -47,4 +47,4 @@ class twitterapi:
             print "[geo] %f %f" % (lat, lng)
             print "[created_at]"+s.created_at
             print '-----------------------------------'
-        #print tweets
+            # output file
