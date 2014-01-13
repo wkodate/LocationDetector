@@ -15,14 +15,16 @@
     <script>
         var latlng = new google.maps.LatLng(35.6909, 139.7002);
         var options = {
-            zoom: 8,
+            zoom: 6,
             center: latlng,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
 
         var map = new google.maps.Map(document.getElementById('map'), options);
         var data = new Array();
-        data.push({user: "{{ user }}", position: new google.maps.LatLng({{ lat }}, {{ lng }}), content: "{{ text }}"});
+        {% for t in tweets %}
+        data.push({user: '<a href="https://twitter.com/{{ t.user }}">{{ t.user }}</a>', position: new google.maps.LatLng({{ t.lng }}, {{ t.lat }}), content: "{{ t.texts }}"});
+        {% endfor %}
 
         function attachMessage(marker, msg) {
             var infoWindow = new google.maps.InfoWindow({
@@ -39,7 +41,7 @@
                 map: map 
                 //icon: TwitterIcon.png
             });
-            var message = data[i].user+': '+data[i].content;
+            var message = data[i].user+data[i].content;
             attachMessage(marker, message);
         }
     </script>
