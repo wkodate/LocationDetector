@@ -23,7 +23,7 @@
         var map = new google.maps.Map(document.getElementById('map'), options);
         var data = new Array();
         {% for t in tweets %}
-        data.push({user: "{{ t.user }}", position: new google.maps.LatLng({{ t.lng }}, {{ t.lat }}), content: "{{ t.texts }}"});
+        data.push({user: '<a href="https://twitter.com/{{ t.user }}">{{ t.user }}</a>', position: new google.maps.LatLng({{ t.lng }}, {{ t.lat }}), content: "{{ t.texts }}"});
         {% endfor %}
 
         function attachMessage(marker, msg) {
@@ -41,7 +41,7 @@
                 map: map 
                 //icon: TwitterIcon.png
             });
-            var message = data[i].user+'  '+data[i].content;
+            var message = data[i].user+data[i].content;
             attachMessage(marker, message);
         }
     </script>
