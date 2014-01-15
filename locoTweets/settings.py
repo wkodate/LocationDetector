@@ -1,5 +1,5 @@
 """
-Django settings for googleMaps project.
+Django settings for locoTweets project.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/dev/topics/settings/
@@ -36,7 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'googleMaps',
+    'locoTweets',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -48,9 +48,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'googleMaps.urls'
+ROOT_URLCONF = 'locoTweets.urls'
 
-WSGI_APPLICATION = 'googleMaps.wsgi.application'
+WSGI_APPLICATION = 'locoTweets.wsgi.application'
 
 
 # Database
@@ -83,5 +83,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = ( 
-    '/Users/wkodate/Develop/TwitterAnalysis/googleMaps/googleMaps',
+    '/Users/wkodate/Develop/TwitterAnalysis/locoTweets',
 )

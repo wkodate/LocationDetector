@@ -2,7 +2,7 @@
 import twitter
 import secret
 from django.template import Context, loader
-import googleMaps
+import locoTweets
 from django.http import HttpResponse
  
 def home(req):
