@@ -5,5 +5,5 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', 'googleMaps.views.home', name='home'),
+    url(r'^$', 'locoTweets.views.home', name='home'),
 )
