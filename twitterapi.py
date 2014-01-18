@@ -2,28 +2,33 @@
 # -*- coding: utf-8 -*-
 
 import twitter
+import urllib2
+import re
+import json
+
 import secret
 
 class twitterapi:
     def __init__(self):
-        self.api = twitter.Api( 
+        self.twitterApi = twitter.Api( 
             consumer_key        = secret.dict['CONSUMER_KEY'],
             consumer_secret     = secret.dict['CONSUMER_SECRET'],
             access_token_key    = secret.dict['ACCESS_TOKEN'],
             access_token_secret = secret.dict['ACCESS_TOKEN_SECRET']
         )
+        self.yahooApiAppId = secret.dict['APP_ID']
         self.terms = secret.terms
 
     def verifyCredentials(self):
-        return self.api.VerifyCredentials()
+        return self.twitterApi.VerifyCredentials()
 
     def getUserTimelineFromAccount(self, name='wkodate', cnt=20):
-        statuses = self.api.GetUserTimeline(screen_name=name, count=cnt)
+        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
         for s in statuses:
             print s.text.encode('utf-8')
 
     def getTweetsWithLocoFromAccount(self, name='wkodate', cnt=20):
-        statuses = self.api.GetUserTimeline(screen_name=name, count=cnt)
+        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
         tweets = {}
         tweets['texts'] = []
         tweets['full_names'] = []
@@ -50,7 +55,7 @@ class twitterapi:
             print '-----------------------------------'
 
     def searchTweetsFromTerm(self, tm, cnt=200):
-        statuses = self.api.GetSearch(term=tm, count=cnt)
+        statuses = self.twitterApi.GetSearch(term=tm, count=cnt)
         for s in statuses:
             if (s.place is None):
                 continue
@@ -59,7 +64,7 @@ class twitterapi:
 
     def searchTweetsFromList(self, cnt=200):
         for tm in self.terms:
-            statuses = self.api.GetSearch(term=tm, count=cnt)
+            statuses = self.twitterApi.GetSearch(term=tm, count=cnt)
             if (statuses is None) :
                 continue
             for s in statuses:
@@ -68,3 +73,21 @@ class twitterapi:
                 print s.text.encode('utf-8')
                 print s.place['full_name'].encode('utf-8')
                 print s                
+
+    def keyphrase(self, name='wkodate', cnt=50):
+        url = "http://jlp.yahooapis.jp/KeyphraseService/V1/extract"
+        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
+        for s in statuses:
+            text = re.sub(r'@\w+ ', '', s.text.encode('utf-8'))
+            print text
+
+            sentence = urllib.quote_plus(text)
+            query = "%s?appid=%s&output=%s&sentence=%s" % (url, self.yahooApiAppId, "json", sentence)
+            c = urllib2.urlopen(query)
+            json_str = c.read()
+            result = json.loads(json_str)
+            if len(result) == 0:
+                continue;
+            for k,v in sorted(result.items(), key=lambda x:x[1], reverse=True):
+                print "keyphrase:%s, score:%d" % (k.encode("utf-8"), v)
+            print '-----------------------------------'
