@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import twitter
+import urllib
 import urllib2
 import re
 import json
-
+import twitter
 import secret
 
 class twitterapi:
@@ -22,13 +22,21 @@ class twitterapi:
     def verifyCredentials(self):
         return self.twitterApi.VerifyCredentials()
 
-    def getUserTimelineFromAccount(self, name='wkodate', cnt=20):
-        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
+    def getUserTimeline(self, name='wkodate', cnt=20):
+        return self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
+
+    def getSearch(self, tm, cnt=200):
+        return self.twitterApi.GetSearch(term=tm, count=cnt)
+
+    def showTweets(self, statuses):
         for s in statuses:
             print s.text.encode('utf-8')
 
-    def getTweetsWithLocoFromAccount(self, name='wkodate', cnt=20):
-        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
+    def showUserKeyphrase(self, statuses):
+        for s in statuses:
+            self.extractKeyphrase(s.text)
+
+    def showTweetsWithLoco(self, statuses):
         tweets = {}
         tweets['texts'] = []
         tweets['full_names'] = []
@@ -40,10 +48,11 @@ class twitterapi:
                 continue
             if (s.coordinates is None):
                 continue
-            tweets['texts'].append(s.text)
-            tweets['full_names'].append(s.place['full_name'])
             lat = s.coordinates['coordinates'][0]
             lng = s.coordinates['coordinates'][1]
+
+            tweets['texts'].append(s.text)
+            tweets['full_names'].append(s.place['full_name'])
             tweets['lat'].append(lat)
             tweets['lng'].append(lng)
             tweets['created_at'].append(s.created_at)
@@ -54,40 +63,17 @@ class twitterapi:
             print "[created_at]"+s.created_at
             print '-----------------------------------'
 
-    def searchTweetsFromTerm(self, tm, cnt=200):
-        statuses = self.twitterApi.GetSearch(term=tm, count=cnt)
-        for s in statuses:
-            if (s.place is None):
-                continue
-            print s.text.encode('utf-8')
-            print s
-
-    def searchTweetsFromList(self, cnt=200):
-        for tm in self.terms:
-            statuses = self.twitterApi.GetSearch(term=tm, count=cnt)
-            if (statuses is None) :
-                continue
-            for s in statuses:
-                if (s.place is None):
-                    continue
-                print s.text.encode('utf-8')
-                print s.place['full_name'].encode('utf-8')
-                print s                
-
-    def keyphrase(self, name='wkodate', cnt=50):
+    def extractKeyphrase(self, text):
         url = "http://jlp.yahooapis.jp/KeyphraseService/V1/extract"
-        statuses = self.twitterApi.GetUserTimeline(screen_name=name, count=cnt)
-        for s in statuses:
-            text = re.sub(r'@\w+ ', '', s.text.encode('utf-8'))
-            print text
+        # remove reply user's name
+        text = re.sub(r'@\w+ ', '', text.encode('utf-8'))
 
-            sentence = urllib.quote_plus(text)
-            query = "%s?appid=%s&output=%s&sentence=%s" % (url, self.yahooApiAppId, "json", sentence)
-            c = urllib2.urlopen(query)
-            json_str = c.read()
-            result = json.loads(json_str)
-            if len(result) == 0:
-                continue;
-            for k,v in sorted(result.items(), key=lambda x:x[1], reverse=True):
-                print "keyphrase:%s, score:%d" % (k.encode("utf-8"), v)
-            print '-----------------------------------'
+        sentence = urllib.quote_plus(text)
+        query = "%s?appid=%s&output=%s&sentence=%s" % (url, self.yahooApiAppId, "json", sentence)
+        c = urllib2.urlopen(query)
+        json_str = c.read()
+        result = json.loads(json_str)
+        if len(result) == 0:
+            return
+        for k,v in sorted(result.items(), key=lambda x:x[1], reverse=True):
+            print k.encode("utf-8")
