@@ -65,3 +65,52 @@ class classifier:
         # Calculate the weighted average
         bp=((weight*ap)+(totals*basicprob))/(weight+totals)
         return bp
+
+class naivebayes(classifier):
+  
+    def __init__(self, getfeatures):
+        classifier.__init__(self, getfeatures)
+        self.thresholds = {}
+    
+    def docprob(self, item, cat):
+        features = self.getfeatures(item)   
+        
+        # すべての特徴の確率を掛け合わせる
+        p = 1
+        for f in features: p *= self.weightedprob(f, cat, self.featureProb)
+        return p
+
+    def prob(self,item,cat):
+        catprob=self.categoryCount(cat)/self.totalCount()
+        docprob=self.docprob(item,cat)
+        return docprob*catprob
+
+    def setthreshold(self,cat,t):
+        self.thresholds[cat]=t
+      
+    def getthreshold(self,cat):
+        if cat not in self.thresholds: return 1.0
+        return self.thresholds[cat]
+    
+    def classify(self,item,default=None):
+        probs={}
+        # もっとも確率の高いカテゴリを探す
+        max=0.0
+        for cat in self.categories():
+            probs[cat]=self.prob(item,cat)
+            if probs[cat]>max: 
+                max=probs[cat]
+                best=cat
+        
+        # 確率がしきい値*2番目にベストなものを超えているか確認する
+        for cat in probs:
+            if cat==best: continue
+            if probs[cat]*self.getthreshold(best)>probs[best]: return default
+        return best
+
+def getwords(doc):
+    words = [s.lower() for s in splitter.split(doc) 
+            if len(s)>2 and len(s)<20]
+    # ユニークな単語の集合を返す
+    return dict([(w, 1) for w in words])
+
