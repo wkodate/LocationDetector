@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import yahoosplitter as splitter
+from pysqlite2 import dbapi2 as sqlite
 
 class classifier:
     def __init__(self, getfeatures, filtername=None):
@@ -11,34 +13,54 @@ class classifier:
         self.cc = {}
         self.getfeatures = getfeatures
 
+    def setdb(self,dbfile):
+        self.con = sqlite.connect(dbfile)    
+        self.con.execute('create table if not exists fc(feature,category,count)')
+        self.con.execute('create table if not exists cc(category,count)')
+
     # 特徴/カテゴリのカウントを増やす
     def incFeature(self, f, cat):
-        self.fc.setdefault(f, {})
-        self.fc[f].setdefault(cat, 0)
-        self.fc[f][cat] += 1
+        count = self.featureCount(f, cat)
+        if count == 0:
+            self.con.execute("insert into fc values ('%s','%s',1)" 
+                    % (f, cat))
+        else:
+            self.con.execute(
+                "update fc set count=%d where feature='%s' and category='%s'" 
+                    % (count+1, f, cat)) 
 
     def incCategory(self, cat):
-        self.cc.setdefault(cat, 0)
-        self.cc[cat] += 1
+        count = self.categoryCount(cat)
+        if count == 0:
+            self.con.execute("insert into cc values ('%s',1)" % (cat))
+        else:
+            self.con.execute("update cc set count=%d where category='%s'" 
+                    % (count+1, cat))    
 
     def featureCount(self, f, cat):
-        if f in self.fc and cat in self.fc[f]:
-            return float(self.fc[f][cat])
-        return 0.0
+        res = self.con.execute(
+            'select count from fc where feature="%s" and category="%s"'
+            %(f, cat)).fetchone()
+        if res == None: return 0
+        else: return float(res[0])
 
     # あるカテゴリ中のアイテムたちの数
     def categoryCount(self, cat):
-        if cat in self.cc:
-            return float(self.cc[cat])
-        return 0
+        res = self.con.execute('select count from cc where category="%s"'
+                %(cat)).fetchone()
+        if res == None: return 0
+        else: return float(res[0])
 
     # アイテムたちの総数
     def totalCount(self):
-        return sum(self.cc.values())
+        res = self.con.execute('select sum(count) from cc').fetchone();
+        if res == None: return 0
+        return res[0]
 
     # すべてのカテゴリたちのリスト
     def categories(self):
-        return self.cc.keys()
+        cur=self.con.execute('select category from cc');
+        return [d[0] for d in cur]
 
     def train(self, item, cat):
         features = self.getfeatures(item)
@@ -47,6 +69,7 @@ class classifier:
             self.incFeature(f, cat)
         # このカテゴリのカウントを増やす
         self.incCategory(cat)
+        self.con.commit()
 
     def featureProb(self, f, cat):
         if self.categoryCount(cat) == 0: return 0
@@ -113,4 +136,20 @@ def getwords(doc):
             if len(s)>2 and len(s)<20]
     # ユニークな単語の集合を返す
     return dict([(w, 1) for w in words])
+
+def escape (self, s, quoted=u'.^$*+?', escape=u"\\"):
+    return re.sub(u'[%s]' % re.escape(quoted), lambda mo: escape + mo.group(), s)
+
+def sampletrain(cl, text, sex):
+    for t in text:
+        if len(t) == 0:
+            continue
+        t = re.sub(r'\'', '\'\'', t) 
+        cl.train(t, sex)
+
+    #cl.train(u'懐かしい衣装😂💛 #リクアワ #2014 #25 http://instagram.com/p/jmMRkIQFPS/ ','female')
+    #cl.train(u'障がい児の社会参加の機会促進を目指し、ICTを活用した学習・生活支援研究「魔法のプロジェクト 2014 ～魔法のワンド～」の協力校を募集開始しました　http://goo.gl/NSn4Fh ','male')
+    #cl.train(u'可愛かった話。 昨日、大竹まことさんがご自身のiPadをいじっているのを見ていたら、iPadカバーの内側に、なんと、マジックで大きくAppleIDとパスワードが書いてあった。 『大竹さんwwそれ絶対やったらダメなやつww』と教えても 『え？なんで？』とポカーン。 カワユス','female')
+    #cl.train(u'本日ラジオ。英国紳士の昼下がりというイメージでやっています。。。','male')
+    #cl.train(u'無料で新聞記事を読める『新聞＊全紙無料』で効率的に情報を仕入れる http://ift.tt/1hzfH8M','none')
 
