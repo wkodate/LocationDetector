@@ -7,6 +7,10 @@ import twitterapi
 import classifier
 
 argvs = sys.argv
+argc = len(argvs)
+if argc != 2: 
+    print 'Usage: python %s account' % argvs[0]
+    quit()
 
 t=twitterapi.twitterapi()
 print argvs[1]+' is ...'
