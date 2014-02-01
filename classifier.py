@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import math
 import yahoosplitter as splitter
 from pysqlite2 import dbapi2 as sqlite
 
@@ -131,6 +132,66 @@ class naivebayes(classifier):
             if probs[cat]*self.getthreshold(best)>probs[best]: return default
         return best
 
+
+class fisherclassifier(classifier):
+
+    def categoryProb(self, f, cat):
+        # このカテゴリ中でのこの特徴の頻度
+        clf = self.featureProb(f, cat)
+        if clf == 0: return 0
+        
+        # すべてのカテゴリ中でのこの特徴の頻度
+        freqsum = sum([self.featureProb(f, c) for c in self.categories()])
+        
+        # 確率はこのカテゴリでの頻度を全体の頻度で割ったもの
+        p = clf/(freqsum)
+        
+        return p
+
+    def fisherProb(self, item, cat):
+        # すべての確率を掛け合わせる
+        p = 1
+        features = self.getfeatures(item)
+        for f in features:
+            p *= (self.weightedprob(f,cat,self.categoryProb))
+        
+        # 自然対数をとり-2を掛け合わせる
+        fscore =- 2 * math.log(p)
+        
+        # 関数chi2の逆数を利用して確率を得る
+        return self.invchi2(fscore, len(features)*2)
+
+    def invchi2(self, chi, df):
+        m = chi / 2.0
+        sum = term = math.exp(-m)
+        for i in range(1, df//2):
+            term *= m / i
+            sum += term
+        return min(sum, 1.0)
+
+    def __init__(self, getfeatures):
+        classifier.__init__(self, getfeatures)
+        self.minimums = {}
+    
+    def setminimum(self, cat, min):
+        self.minimums[cat] = min
+    
+    def getminimum(self, cat):
+        if cat not in self.minimums: return 0
+        return self.minimums[cat]
+
+    def classify(self, item, default=None):
+        # もっともよい結果を探してループする
+        best = default
+        max = 0.0
+        for c in self.categories():
+            p = self.fisherProb(item,c)
+            # 下限値を超えていることを確認する
+            if p > self.getminimum(c) and p > max:
+                best = c
+                max  = p
+        return best
+
 def getwords(doc):
     words = [s.lower() for s in splitter.split(doc) 
             if len(s)>2 and len(s)<20]
@@ -146,10 +207,4 @@ def sampletrain(cl, text, sex):
             continue
         t = re.sub(r'\'', '\'\'', t) 
         cl.train(t, sex)
-
-    #cl.train(u'懐かしい衣装😂💛 #リクアワ #2014 #25 http://instagram.com/p/jmMRkIQFPS/ ','female')
-    #cl.train(u'障がい児の社会参加の機会促進を目指し、ICTを活用した学習・生活支援研究「魔法のプロジェクト 2014 ～魔法のワンド～」の協力校を募集開始しました　http://goo.gl/NSn4Fh ','male')
-    #cl.train(u'可愛かった話。 昨日、大竹まことさんがご自身のiPadをいじっているのを見ていたら、iPadカバーの内側に、なんと、マジックで大きくAppleIDとパスワードが書いてあった。 『大竹さんwwそれ絶対やったらダメなやつww』と教えても 『え？なんで？』とポカーン。 カワユス','female')
-    #cl.train(u'本日ラジオ。英国紳士の昼下がりというイメージでやっています。。。','male')
-    #cl.train(u'無料で新聞記事を読める『新聞＊全紙無料』で効率的に情報を仕入れる http://ift.tt/1hzfH8M','none')
 
