@@ -10,12 +10,12 @@ argvs = sys.argv
 argc = len(argvs)
 
 def printDebug():
-    print 'Usage: python %s account [male|female]' % argvs[0]
+    print 'Usage: python %s account [male|female|other]' % argvs[0]
     quit()
 
 if argc != 3 : 
     printDebug()
-if argvs[2] != 'male' and argvs[2] != 'female':
+if argvs[2] != 'male' and argvs[2] != 'female' and argvs[2] != 'other':
     printDebug()
 
 account = argvs[1]
