@@ -86,3 +86,6 @@ class twitterapi:
             return
         for k,v in sorted(result.items(), key=lambda x:x[1], reverse=True):
             print k.encode("utf-8")
+
+def list2String(list):
+    return " " . join(list)
