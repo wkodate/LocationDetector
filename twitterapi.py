@@ -28,9 +28,18 @@ class twitterapi:
     def getSearch(self, tm, cnt=200):
         return self.twitterApi.GetSearch(term=tm, count=cnt)
 
-    def showTweets(self, statuses):
+    def printTweets(self, statuses):
         for s in statuses:
             print s.text.encode('utf-8')
+
+    def getTweets(self, statuses):
+        tweets = []
+        for s in statuses:
+            tweets.append(s.text)
+        return tweets
+
+    def removeReply(self, text):
+        return re.sub(r'@\w+ ', '', text.encode('utf-8'))
 
     def showUserKeyphrase(self, statuses):
         for s in statuses:
@@ -77,3 +86,6 @@ class twitterapi:
             return
         for k,v in sorted(result.items(), key=lambda x:x[1], reverse=True):
             print k.encode("utf-8")
+
+def list2String(list):
+    return " " . join(list)
